@@ -1,0 +1,25 @@
+body {
+    padding: 20px;
+    font-family: sans-serif;
+}
+.editor-container {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+textarea {
+    width: 50%;
+    height: 150px;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.button-container {
+    margin-bottom: 20px;
+}
+#preview-wrapper {
+    padding: 20px;
+    background-color: #f0f0f0; /* 프리뷰 영역 구분을 위한 임시 배경색 */
+}
+#capture-area {
+    display: inline-block; /* 내부 컨텐츠 크기만큼만 영역을 차지하도록 설정하여 여백 방지 */
+}

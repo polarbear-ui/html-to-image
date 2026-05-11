@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML to Image</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="editor-container">
+        <textarea id="html-input" placeholder="HTML 코드를 입력하세요"></textarea>
+        <textarea id="css-input" placeholder="CSS 코드를 입력하세요"></textarea>
+    </div>
+    
+    <div class="button-container">
+        <button onclick="updatePreview()">미리보기 적용</button>
+        <button onclick="saveAsPng()">PNG로 저장</button>
+    </div>
+
+    <style id="dynamic-style"></style>
+
+    <div id="preview-wrapper">
+        <div id="capture-area"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
