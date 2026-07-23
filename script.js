@@ -54,7 +54,7 @@ function applyStretch() {
     document.getElementById('capture-area').classList.toggle('stretch', on);
 }
 
-// 여백 · 라운딩 · 그림자를 미리보기에 그대로 보여준다
+// 여백 · 라운딩 · 그림자를 미리보기에 대략 보여준다
 function applyPreviewStyle() {
     const paper = document.getElementById('paper');
     const area = document.getElementById('capture-area');
@@ -98,8 +98,9 @@ function saveAsPng(withBackground) {
         useCORS: true,
         backgroundColor: null,
         scale: CAPTURE_SCALE
-    }).then(canvas => {
-        const output = withBackground ? composeOnWhite(canvas) : canvas;
+    }).then(raw => {
+        const trimmed = trimTransparent(raw);   // 내용 바깥의 빈 공간 제거
+        const output = withBackground ? composeOnWhite(trimmed, raw.width) : trimmed;
 
         const link = document.createElement('a');
         link.download = withBackground ? 'layout-preview-white.png' : 'layout-preview.png';
@@ -112,15 +113,69 @@ function saveAsPng(withBackground) {
     });
 }
 
-// 캡처된 캔버스를 흰 바탕 위에 여백 · 라운딩 · 그림자와 함께 다시 그린다
-function composeOnWhite(canvas) {
+// 캔버스 가장자리의 투명한 영역을 잘라내 실제 내용에 딱 맞춘다
+function trimTransparent(canvas) {
+    const width = canvas.width;
+    const height = canvas.height;
+
+    let data;
+    try {
+        data = canvas.getContext('2d').getImageData(0, 0, width, height).data;
+    } catch (e) {
+        // 외부 이미지 때문에 캔버스가 오염되면 픽셀을 읽을 수 없다
+        console.warn('빈 영역을 잘라내지 못했습니다:', e);
+        return canvas;
+    }
+
+    const ALPHA_THRESHOLD = 8; // 거의 투명한 안티에일리어싱 픽셀은 무시
+    let top = -1, bottom = -1, left = width, right = -1;
+
+    for (let y = 0; y < height; y++) {
+        let rowLeft = -1, rowRight = -1;
+        for (let x = 0; x < width; x++) {
+            if (data[(y * width + x) * 4 + 3] > ALPHA_THRESHOLD) {
+                if (rowLeft < 0) rowLeft = x;
+                rowRight = x;
+            }
+        }
+        if (rowLeft >= 0) {
+            if (top < 0) top = y;
+            bottom = y;
+            if (rowLeft < left) left = rowLeft;
+            if (rowRight > right) right = rowRight;
+        }
+    }
+
+    if (top < 0) return canvas; // 내용이 전부 투명하면 그대로 둔다
+
+    const cropWidth = right - left + 1;
+    const cropHeight = bottom - top + 1;
+    if (cropWidth === width && cropHeight === height) return canvas;
+
+    const cropped = document.createElement('canvas');
+    cropped.width = cropWidth;
+    cropped.height = cropHeight;
+    cropped.getContext('2d').drawImage(
+        canvas, left, top, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight
+    );
+    return cropped;
+}
+
+// 잘라낸 내용을 흰 바탕 위에 여백 · 라운딩 · 그림자와 함께 다시 그린다
+function composeOnWhite(canvas, originalWidth) {
     const s = CAPTURE_SCALE;
     const pad = getMargin() * s;
+
+    // 잘려나간 좌우 공간을 여백으로 넘겨 전체 너비를 유지한다
+    const keepWidth = document.getElementById('keep-width').checked;
+    const extra = keepWidth ? Math.max(0, (originalWidth - canvas.width) / 2) : 0;
+    const sidePad = pad + extra;
+
     const radius = Math.min(getRadius() * s, canvas.width / 2, canvas.height / 2);
     const shadow = getShadow();
 
     const out = document.createElement('canvas');
-    out.width = canvas.width + pad * 2;
+    out.width = canvas.width + sidePad * 2;
     out.height = canvas.height + pad * 2;
 
     const ctx = out.getContext('2d');
@@ -134,16 +189,16 @@ function composeOnWhite(canvas) {
         ctx.shadowBlur = shadow.blur * s;
         ctx.shadowOffsetY = shadow.offsetY * s;
         ctx.fillStyle = '#ffffff';
-        roundRectPath(ctx, pad, pad, canvas.width, canvas.height, radius);
+        roundRectPath(ctx, sidePad, pad, canvas.width, canvas.height, radius);
         ctx.fill();
         ctx.restore();
     }
 
     // 2) 둥근 모서리로 잘라내며 내용을 얹는다
     ctx.save();
-    roundRectPath(ctx, pad, pad, canvas.width, canvas.height, radius);
+    roundRectPath(ctx, sidePad, pad, canvas.width, canvas.height, radius);
     ctx.clip();
-    ctx.drawImage(canvas, pad, pad);
+    ctx.drawImage(canvas, sidePad, pad);
     ctx.restore();
 
     return out;

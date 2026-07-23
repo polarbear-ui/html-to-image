@@ -36,6 +36,12 @@
                 <input type="checkbox" id="stretch-content"> 내용을 너비에 맞춰 늘리기
             </label>
         </div>
+
+        <div class="control-group">
+            <label for="keep-width">
+                <input type="checkbox" id="keep-width" checked> 남는 공간을 좌우 여백으로
+            </label>
+        </div>
     </div>
 
     <div class="control-bar">
@@ -69,6 +75,11 @@
         <button onclick="saveAsPng(false)">투명 배경으로 저장</button>
         <button onclick="saveAsPng(true)">흰 배경 + 여백으로 저장</button>
     </div>
+
+    <p class="hint">
+        저장할 때 내용 바깥의 빈 공간은 자동으로 잘라냅니다.
+        점선은 캡처 박스(줄바꿈 기준)이며, 실제 이미지는 그 안의 내용에 딱 맞게 잘립니다.
+    </p>
 
     <style id="dynamic-style"></style>
 
