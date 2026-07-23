@@ -5,7 +5,7 @@
     <title>HTML to Image</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <!-- ?v= 뒤 숫자는 캐시 무효화용. 파일을 수정하면 숫자를 올리세요 -->
-    <link rel="stylesheet" href="style.css?v=5">
+    <link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
     <div class="editor-container">
@@ -72,18 +72,20 @@
     </div>
 
     <p class="hint">
-        점선은 캡처 박스(줄바꿈 기준)입니다. 저장할 때는 그 안에서 내용이 실제로 채워진 만큼만 잘라내
-        라운딩과 그림자를 붙이고, 남는 공간은 바깥 흰 여백으로 넘깁니다.
+        점선은 실제로 저장될 경계입니다. 캡처 너비는 줄바꿈 기준으로만 쓰이고,
+        내용이 채우지 못한 공간은 잘라내어 바깥 흰 여백으로 넘깁니다.
     </p>
 
     <style id="dynamic-style"></style>
 
     <div id="preview-wrapper">
         <div id="paper">
-            <div id="capture-area"></div>
+            <div id="shadow-layer">
+                <div id="capture-area"></div>
+            </div>
         </div>
     </div>
 
-    <script src="script.js?v=5"></script>
+    <script src="script.js?v=7"></script>
 </body>
 </html>

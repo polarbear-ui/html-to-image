@@ -49,22 +49,87 @@ function applyWidth() {
     }
 }
 
-// 여백 · 라운딩 · 그림자를 미리보기에 대략 보여준다
+// 캡처 박스 안에서 내용이 실제로 차지하는 범위를 잰다 (저장 시의 잘라내기와 같은 역할)
+function measureContentBounds(root) {
+    const base = root.getBoundingClientRect();
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+
+    const consider = (rect) => {
+        if (!rect || (rect.width === 0 && rect.height === 0)) return;
+        left = Math.min(left, rect.left);
+        top = Math.min(top, rect.top);
+        right = Math.max(right, rect.right);
+        bottom = Math.max(bottom, rect.bottom);
+    };
+
+    const walk = (node) => {
+        node.childNodes.forEach(child => {
+            if (child.nodeType === Node.ELEMENT_NODE) {
+                const style = getComputedStyle(child);
+                if (style.display === 'none' || style.visibility === 'hidden') return;
+                consider(child.getBoundingClientRect());
+                walk(child);
+            } else if (child.nodeType === Node.TEXT_NODE && child.textContent.trim()) {
+                // 요소로 감싸이지 않은 맨 텍스트도 범위에 포함시킨다
+                const range = document.createRange();
+                range.selectNodeContents(child);
+                Array.from(range.getClientRects()).forEach(consider);
+            }
+        });
+    };
+    walk(root);
+
+    if (left === Infinity) return null;
+    return {
+        left: left - base.left,
+        top: top - base.top,
+        width: right - left,
+        height: bottom - top
+    };
+}
+
+// 미리보기를 실제 저장 결과와 같은 모습으로 맞춘다
 function applyPreviewStyle() {
     const paper = document.getElementById('paper');
+    const layer = document.getElementById('shadow-layer');
     const area = document.getElementById('capture-area');
-    const on = document.getElementById('preview-white').checked;
+    const showWhite = document.getElementById('preview-white').checked;
     const radius = getRadius();
     const shadow = getShadow();
 
-    paper.classList.toggle('white-preview', on);
-    paper.style.padding = on ? getMargin() + 'px' : '';
+    // 정확히 재려면 먼저 이전 잘라내기를 원상복구해야 한다
+    area.style.clipPath = '';
+    area.style.margin = '';
 
-    area.style.borderRadius = radius ? radius + 'px' : '';
-    area.style.overflow = radius ? 'hidden' : '';
-    area.style.boxShadow = (on && shadow)
-        ? `0 ${shadow.offsetY}px ${shadow.blur}px ${shadow.color}`
+    const boxWidth = area.offsetWidth;
+    const boxHeight = area.offsetHeight;
+    const bounds = measureContentBounds(area);
+
+    let contentWidth = boxWidth;
+    if (bounds) {
+        const l = Math.max(0, Math.round(bounds.left));
+        const t = Math.max(0, Math.round(bounds.top));
+        const r = Math.max(0, Math.round(boxWidth - bounds.left - bounds.width));
+        const b = Math.max(0, Math.round(boxHeight - bounds.top - bounds.height));
+        contentWidth = boxWidth - l - r;
+
+        // 내용 바깥은 잘라내고, 잘려나간 만큼 음수 마진으로 접어 종이가 내용에 붙게 한다
+        area.style.clipPath = `inset(${t}px ${r}px ${b}px ${l}px round ${radius}px)`;
+        area.style.margin = `${-t}px ${-r}px ${-b}px ${-l}px`;
+    }
+
+    layer.style.borderRadius = radius + 'px';
+    layer.style.filter = (showWhite && shadow)
+        ? `drop-shadow(0 ${shadow.offsetY}px ${shadow.blur / 2}px ${shadow.color})`
         : '';
+
+    // 남는 좌우 공간을 여백으로 넘기는 설정을 미리보기에도 반영
+    const keepWidth = document.getElementById('keep-width').checked;
+    const extra = keepWidth ? Math.max(0, (boxWidth - contentWidth) / 2) : 0;
+    const margin = getMargin();
+
+    paper.classList.toggle('white-preview', showWhite);
+    paper.style.padding = showWhite ? `${margin}px ${margin + extra}px` : '';
 }
 
 /* ---------- 미리보기 ---------- */
@@ -94,10 +159,12 @@ function saveAsPng(withBackground) {
         scale: CAPTURE_SCALE
     }).then(raw => {
         const trimmed = trimEdges(raw);   // 내용 바깥의 빈 공간 제거
-        const output = withBackground ? composeOnWhite(trimmed, raw.width) : trimmed;
+        const output = withBackground
+            ? composeOnWhite(trimmed, raw.width)
+            : roundCorners(trimmed, getRadius() * CAPTURE_SCALE);
 
         const link = document.createElement('a');
-        link.download = withBackground ? 'layout-preview-white.png' : 'layout-preview.png';
+        link.download = buildFileName(withBackground);
         link.href = output.toDataURL('image/png');
         link.click();
     }).catch(err => {
@@ -105,6 +172,21 @@ function saveAsPng(withBackground) {
     }).finally(() => {
         target.classList.remove('capturing');
     });
+}
+
+// 저장 시각을 붙여 이름이 겹치지 않게 한다
+// (모바일 브라우저는 PC처럼 (1), (2)를 자동으로 붙여주지 않아 같은 이름이면 덮어쓴다)
+function buildFileName(withBackground) {
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const stamp = now.getFullYear()
+        + pad(now.getMonth() + 1)
+        + pad(now.getDate()) + '-'
+        + pad(now.getHours())
+        + pad(now.getMinutes())
+        + pad(now.getSeconds());
+
+    return `layout-preview-${withBackground ? 'white' : 'clear'}-${stamp}.png`;
 }
 
 // 캔버스 가장자리의 투명한 영역을 잘라내 실제 내용에 딱 맞춘다
@@ -198,6 +280,22 @@ function composeOnWhite(canvas, originalWidth) {
     return out;
 }
 
+// 투명 배경으로 저장할 때 모서리만 둥글게 깎는다
+function roundCorners(canvas, radius) {
+    const r = Math.min(radius, canvas.width / 2, canvas.height / 2);
+    if (r <= 0) return canvas;
+
+    const out = document.createElement('canvas');
+    out.width = canvas.width;
+    out.height = canvas.height;
+
+    const ctx = out.getContext('2d');
+    roundRectPath(ctx, 0, 0, canvas.width, canvas.height, r);
+    ctx.clip();
+    ctx.drawImage(canvas, 0, 0);
+    return out;
+}
+
 // 둥근 사각형 경로 (구형 브라우저에서도 동작하도록 arcTo로 직접 그림)
 function roundRectPath(ctx, x, y, width, height, radius) {
     const r = Math.max(0, radius);
@@ -220,13 +318,17 @@ document.addEventListener('DOMContentLoaded', () => {
         custom.disabled = preset.value !== 'custom';
         if (preset.value === 'custom') custom.focus();
         applyWidth();
+        applyPreviewStyle();
     });
 
-    custom.addEventListener('input', applyWidth);
+    custom.addEventListener('input', () => {
+        applyWidth();
+        applyPreviewStyle();
+    });
     ['margin-size', 'corner-radius'].forEach(id => {
         document.getElementById(id).addEventListener('input', applyPreviewStyle);
     });
-    ['shadow-on', 'preview-white'].forEach(id => {
+    ['shadow-on', 'preview-white', 'keep-width'].forEach(id => {
         document.getElementById(id).addEventListener('change', applyPreviewStyle);
     });
 

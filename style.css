@@ -85,12 +85,17 @@ textarea {
     background-color: #ffffff;
 }
 
+/* 그림자를 내용의 실제 모양(잘라낸 뒤의 윤곽)에 맞춰 드리우는 층 */
+#shadow-layer {
+    width: fit-content;
+    outline: 1px dashed #999; /* 실제로 저장될 경계 표시 */
+}
+
 #capture-area {
     display: inline-block; /* 내부 컨텐츠 크기만큼만 영역을 차지하도록 설정하여 여백 방지 */
-    outline: 1px dashed #999; /* 캡처 범위 확인용, 저장 시에는 제거됨 */
 }
-/* 저장 직전에 미리보기 전용 장식을 걷어낸다 (그림자는 캔버스에서 직접 그림) */
+/* 저장 직전에 미리보기 전용 잘라내기를 걷어낸다 (실제 잘라내기는 캔버스에서 수행) */
 #capture-area.capturing {
-    outline: none;
-    box-shadow: none !important;
+    clip-path: none !important;
+    margin: 0 !important;
 }
