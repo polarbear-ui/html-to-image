@@ -94,9 +94,3 @@ textarea {
     outline: none;
     box-shadow: none !important;
 }
-
-/* '내용을 너비에 맞춰 늘리기' — 최상위 요소들이 캡처 너비를 채우도록 */
-#capture-area.stretch > * {
-    width: 100%;
-    box-sizing: border-box;
-}

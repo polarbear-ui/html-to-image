@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <title>HTML to Image</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="style.css">
+    <!-- ?v= 뒤 숫자는 캐시 무효화용. 파일을 수정하면 숫자를 올리세요 -->
+    <link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
     <div class="editor-container">
@@ -29,12 +30,6 @@
             </select>
             <input type="number" id="custom-width" value="800" min="100" max="4000" step="10" disabled>
             <span class="unit">px</span>
-        </div>
-
-        <div class="control-group">
-            <label for="stretch-content">
-                <input type="checkbox" id="stretch-content"> 내용을 너비에 맞춰 늘리기
-            </label>
         </div>
 
         <div class="control-group">
@@ -77,8 +72,8 @@
     </div>
 
     <p class="hint">
-        저장할 때 내용 바깥의 빈 공간은 자동으로 잘라냅니다.
-        점선은 캡처 박스(줄바꿈 기준)이며, 실제 이미지는 그 안의 내용에 딱 맞게 잘립니다.
+        점선은 캡처 박스(줄바꿈 기준)입니다. 저장할 때는 그 안에서 내용이 실제로 채워진 만큼만 잘라내
+        라운딩과 그림자를 붙이고, 남는 공간은 바깥 흰 여백으로 넘깁니다.
     </p>
 
     <style id="dynamic-style"></style>
@@ -89,6 +84,6 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=5"></script>
 </body>
 </html>

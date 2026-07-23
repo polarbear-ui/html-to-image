@@ -49,11 +49,6 @@ function applyWidth() {
     }
 }
 
-function applyStretch() {
-    const on = document.getElementById('stretch-content').checked;
-    document.getElementById('capture-area').classList.toggle('stretch', on);
-}
-
 // 여백 · 라운딩 · 그림자를 미리보기에 대략 보여준다
 function applyPreviewStyle() {
     const paper = document.getElementById('paper');
@@ -82,7 +77,6 @@ function updatePreview() {
     document.getElementById('dynamic-style').innerHTML = cssCode;
 
     applyWidth();
-    applyStretch();
     applyPreviewStyle();
 }
 
@@ -99,7 +93,7 @@ function saveAsPng(withBackground) {
         backgroundColor: null,
         scale: CAPTURE_SCALE
     }).then(raw => {
-        const trimmed = trimTransparent(raw);   // 내용 바깥의 빈 공간 제거
+        const trimmed = trimEdges(raw);   // 내용 바깥의 빈 공간 제거
         const output = withBackground ? composeOnWhite(trimmed, raw.width) : trimmed;
 
         const link = document.createElement('a');
@@ -114,7 +108,7 @@ function saveAsPng(withBackground) {
 }
 
 // 캔버스 가장자리의 투명한 영역을 잘라내 실제 내용에 딱 맞춘다
-function trimTransparent(canvas) {
+function trimEdges(canvas) {
     const width = canvas.width;
     const height = canvas.height;
 
@@ -127,13 +121,13 @@ function trimTransparent(canvas) {
         return canvas;
     }
 
-    const ALPHA_THRESHOLD = 8; // 거의 투명한 안티에일리어싱 픽셀은 무시
+    const ALPHA_MIN = 8; // 거의 투명한 안티에일리어싱 픽셀은 무시
     let top = -1, bottom = -1, left = width, right = -1;
 
     for (let y = 0; y < height; y++) {
         let rowLeft = -1, rowRight = -1;
         for (let x = 0; x < width; x++) {
-            if (data[(y * width + x) * 4 + 3] > ALPHA_THRESHOLD) {
+            if (data[(y * width + x) * 4 + 3] >= ALPHA_MIN) {
                 if (rowLeft < 0) rowLeft = x;
                 rowRight = x;
             }
@@ -229,8 +223,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     custom.addEventListener('input', applyWidth);
-    document.getElementById('stretch-content').addEventListener('change', applyStretch);
-
     ['margin-size', 'corner-radius'].forEach(id => {
         document.getElementById(id).addEventListener('input', applyPreviewStyle);
     });
