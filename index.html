@@ -17,7 +17,10 @@
             <label for="width-preset">캡처 너비</label>
             <select id="width-preset">
                 <option value="auto">자동 (내용 크기에 맞춤)</option>
-                <option value="600">600px · 모바일 / 뉴스레터</option>
+                <option value="360">360px · 모바일 (안드로이드)</option>
+                <option value="390">390px · 모바일 (아이폰)</option>
+                <option value="430">430px · 모바일 대화면</option>
+                <option value="600">600px · 뉴스레터</option>
                 <option value="800" selected>800px · 블로그 본문</option>
                 <option value="1080">1080px · SNS 정방형</option>
                 <option value="1200">1200px · 데스크탑 기본</option>
@@ -29,6 +32,14 @@
         </div>
 
         <div class="control-group">
+            <label for="stretch-content">
+                <input type="checkbox" id="stretch-content"> 내용을 너비에 맞춰 늘리기
+            </label>
+        </div>
+    </div>
+
+    <div class="control-bar">
+        <div class="control-group">
             <label for="margin-size">흰 배경 여백</label>
             <input type="number" id="margin-size" value="60" min="0" max="400" step="10">
             <span class="unit">px</span>
@@ -38,6 +49,11 @@
             <label for="preview-white">
                 <input type="checkbox" id="preview-white"> 여백까지 미리보기
             </label>
+        </div>
+
+        <div class="control-group">
+            <label for="bg-color">미리보기 배경</label>
+            <input type="color" id="bg-color" value="#dbe6f2">
         </div>
     </div>
 
@@ -50,7 +66,9 @@
     <style id="dynamic-style"></style>
 
     <div id="preview-wrapper">
-        <div id="capture-area"></div>
+        <div id="paper">
+            <div id="capture-area"></div>
+        </div>
     </div>
 
     <script src="script.js"></script>

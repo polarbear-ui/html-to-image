@@ -1,6 +1,6 @@
 const CAPTURE_SCALE = 2; // 저장 해상도 배율 (2 = 레티나 수준)
 
-/* ---------- 너비 설정 ---------- */
+/* ---------- 설정값 읽기 ---------- */
 
 function getTargetWidth() {
     const preset = document.getElementById('width-preset').value;
@@ -17,6 +17,8 @@ function getMargin() {
     return isNaN(value) || value < 0 ? 0 : value;
 }
 
+/* ---------- 화면 반영 ---------- */
+
 function applyWidth() {
     const area = document.getElementById('capture-area');
     const width = getTargetWidth();
@@ -25,21 +27,29 @@ function applyWidth() {
         // 너비를 고정하면 블록으로 바꿔야 지정한 폭이 그대로 적용된다
         area.style.display = 'block';
         area.style.width = width + 'px';
-        area.style.margin = '0 auto';
     } else {
         // 자동일 때는 내용 크기만큼만 차지하도록 원래 방식으로 되돌림
         area.style.display = 'inline-block';
         area.style.width = '';
-        area.style.margin = '';
     }
 }
 
+function applyStretch() {
+    const on = document.getElementById('stretch-content').checked;
+    document.getElementById('capture-area').classList.toggle('stretch', on);
+}
+
 function applyPreviewMargin() {
-    const wrapper = document.getElementById('preview-wrapper');
+    const paper = document.getElementById('paper');
     const on = document.getElementById('preview-white').checked;
 
-    wrapper.classList.toggle('white-preview', on);
-    wrapper.style.padding = on ? getMargin() + 'px' : '';
+    paper.classList.toggle('white-preview', on);
+    paper.style.padding = on ? getMargin() + 'px' : '';
+}
+
+function applyBackground() {
+    document.getElementById('preview-wrapper').style.backgroundColor =
+        document.getElementById('bg-color').value;
 }
 
 /* ---------- 미리보기 ---------- */
@@ -52,6 +62,7 @@ function updatePreview() {
     document.getElementById('dynamic-style').innerHTML = cssCode;
 
     applyWidth();
+    applyStretch();
     applyPreviewMargin();
 }
 
@@ -109,8 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     custom.addEventListener('input', applyWidth);
+    document.getElementById('stretch-content').addEventListener('change', applyStretch);
     document.getElementById('margin-size').addEventListener('input', applyPreviewMargin);
     document.getElementById('preview-white').addEventListener('change', applyPreviewMargin);
+    document.getElementById('bg-color').addEventListener('input', applyBackground);
 
     applyWidth();
+    applyBackground();
 });

@@ -14,14 +14,14 @@ textarea {
     box-sizing: border-box;
 }
 
-/* 너비 · 여백 설정 바 */
+/* 설정 바 */
 .control-bar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 20px;
     padding: 12px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     background-color: #fafafa;
     border: 1px solid #e0e0e0;
     border-radius: 4px;
@@ -47,12 +47,18 @@ textarea {
     background-color: #eee;
     color: #999;
 }
+.control-bar input[type="color"] {
+    width: 40px;
+    height: 26px;
+    padding: 2px;
+    cursor: pointer;
+}
 .unit {
     color: #888;
 }
 
 .button-container {
-    margin-bottom: 20px;
+    margin: 16px 0 20px;
     display: flex;
     gap: 8px;
 }
@@ -62,27 +68,32 @@ textarea {
     cursor: pointer;
 }
 
+/* 미리보기 바깥 영역 — 흰 여백과 구분되도록 파스텔 배경 (JS에서 색상 지정) */
 #preview-wrapper {
-    padding: 20px;
-    /* 투명 영역을 알아보기 쉽도록 체크무늬 배경 */
-    background-color: #f0f0f0;
-    background-image:
-        linear-gradient(45deg, #e2e2e2 25%, transparent 25%, transparent 75%, #e2e2e2 75%),
-        linear-gradient(45deg, #e2e2e2 25%, transparent 25%, transparent 75%, #e2e2e2 75%);
-    background-size: 20px 20px;
-    background-position: 0 0, 10px 10px;
+    padding: 30px;
+    overflow-x: auto;
 }
-/* '여백까지 미리보기'를 켰을 때 저장 결과와 같은 흰 바탕으로 전환 */
-#preview-wrapper.white-preview {
+
+/* 저장될 이미지 전체에 해당하는 영역. '여백까지 미리보기'를 켜면 흰 종이가 된다 */
+#paper {
+    width: fit-content;
+    margin: 0 auto;
+}
+#paper.white-preview {
     background-color: #ffffff;
-    background-image: none;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
 }
 
 #capture-area {
     display: inline-block; /* 내부 컨텐츠 크기만큼만 영역을 차지하도록 설정하여 여백 방지 */
-    outline: 1px dashed #b0b0b0; /* 캡처 범위 확인용, 저장 시에는 제거됨 */
-    outline-offset: 0;
+    outline: 1px dashed #999; /* 캡처 범위 확인용, 저장 시에는 제거됨 */
 }
 #capture-area.capturing {
     outline: none;
+}
+
+/* '내용을 너비에 맞춰 늘리기' — 최상위 요소들이 캡처 너비를 채우도록 */
+#capture-area.stretch > * {
+    width: 100%;
+    box-sizing: border-box;
 }
