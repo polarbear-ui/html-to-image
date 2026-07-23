@@ -47,12 +47,6 @@ textarea {
     background-color: #eee;
     color: #999;
 }
-.control-bar input[type="color"] {
-    width: 40px;
-    height: 26px;
-    padding: 2px;
-    cursor: pointer;
-}
 .unit {
     color: #888;
 }
@@ -68,10 +62,11 @@ textarea {
     cursor: pointer;
 }
 
-/* 미리보기 바깥 영역 — 흰 여백과 구분되도록 파스텔 배경 (JS에서 색상 지정) */
+/* 미리보기 바깥 영역 — 이 배경색은 이미지에 저장되지 않는 작업용 배경입니다 */
 #preview-wrapper {
     padding: 30px;
     overflow-x: auto;
+    background-color: #dbe6f2;
 }
 
 /* 저장될 이미지 전체에 해당하는 영역. '여백까지 미리보기'를 켜면 흰 종이가 된다 */
@@ -81,15 +76,16 @@ textarea {
 }
 #paper.white-preview {
     background-color: #ffffff;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
 }
 
 #capture-area {
     display: inline-block; /* 내부 컨텐츠 크기만큼만 영역을 차지하도록 설정하여 여백 방지 */
     outline: 1px dashed #999; /* 캡처 범위 확인용, 저장 시에는 제거됨 */
 }
+/* 저장 직전에 미리보기 전용 장식을 걷어낸다 (그림자는 캔버스에서 직접 그림) */
 #capture-area.capturing {
     outline: none;
+    box-shadow: none !important;
 }
 
 /* '내용을 너비에 맞춰 늘리기' — 최상위 요소들이 캡처 너비를 채우도록 */
